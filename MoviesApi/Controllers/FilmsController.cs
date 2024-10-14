@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MoviesApi.DatabaseContext;
+using MoviesApi.Helpers;
 using MoviesApi.Models;
 
 namespace MoviesApi.Controllers
@@ -22,12 +23,13 @@ namespace MoviesApi.Controllers
         }
 
         // GET: api/Films
+        [Route("[action]")]
         [HttpGet]
-        public async Task<ActionResult<List<Film>>> GetFilms()
+        public async Task<ActionResult<IEnumerable<Film>>> GetFilms()
         {
             try
             {
-                var films = await _context.Film.ToListAsync();
+                var films = await _context.Film.OrderBy(temp => temp.Title).ToListAsync();
                 if (films == null || !films.Any())
                 {
                     return NotFound("No films found in the database.");
@@ -43,9 +45,14 @@ namespace MoviesApi.Controllers
         }
 
         // GET: api/Films/5
-        [HttpGet("{id}")]
+        [Route("[action]")]
+        [HttpGet("[action]/{id}")]
         public async Task<ActionResult<Film>> GetAFilm(int id)
         {
+            if(id <= 0)
+            {
+                return BadRequest();
+            }
             var film = await _context.Film.FindAsync(id);
 
             if (film == null)
@@ -58,13 +65,15 @@ namespace MoviesApi.Controllers
 
         // PUT: api/Films/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutFilm(int id, Film film)
+        [Route("[action]")]
+        [HttpPut("[action]/{FilmID}")]
+        public async Task<IActionResult> PutFilm(int FilmID, Film film)
         {
-            if (id != film.FilmID)
+            if (FilmID != film.FilmID)
             {
                 return BadRequest();
             }
+            ValidationHelper.ModelValidation(film);
 
             _context.Entry(film).State = EntityState.Modified;
 
@@ -74,7 +83,7 @@ namespace MoviesApi.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!FilmExists(id))
+                if (!FilmExists(FilmID))
                 {
                     return NotFound();
                 }
@@ -89,16 +98,18 @@ namespace MoviesApi.Controllers
 
         // POST: api/Films
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Route("[action]")]
         [HttpPost]
         public async Task<ActionResult<Film>> PostFilm(Film film)
         {
             _context.Film.Add(film);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetFilm", new { id = film.FilmID }, film);
+            return CreatedAtAction("GetAFilm", new { id = film.FilmID }, film);
         }
 
         // DELETE: api/Films/5
+        [Route("[action]")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteFilm(int id)
         {
