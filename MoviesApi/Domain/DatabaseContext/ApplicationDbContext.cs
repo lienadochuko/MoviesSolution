@@ -1,18 +1,18 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using MoviesApi.Domain.IdentityEntities;
 using MoviesApi.Models;
 using System;
 
-namespace MoviesApi.DatabaseContext
+namespace MoviesApi.Domain.DatabaseContext
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
     {
-        // Constructor accepting DbContextOptions
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
         }
-
+      
         public DbSet<Film> Film { get; set; }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MoviesApi.Repositories.DataAccess
+namespace MoviesApi.Domain.Repositories
 {
-	public interface IDataRepository
-	{
-		Task<IEnumerable<T>> DynamicRetrival<T>(string procedureName, string ConnectionString, SqlParameter[] sqlParameter, Func<SqlDataReader, T> mapFunction, CancellationToken cancellationToken = default);
-       // Task<ActorsDto> GetSearchedActors(string id, string procedureName, string connectionString,CancellationToken cancellationToken = default);
+    public interface IDataRepository
+    {
+        Task<IEnumerable<T>> DynamicRetrival<T>(string procedureName, string ConnectionString, SqlParameter[] sqlParameter, Func<SqlDataReader, T> mapFunction, CancellationToken cancellationToken = default);
+        // Task<ActorsDto> GetSearchedActors(string id, string procedureName, string connectionString,CancellationToken cancellationToken = default);
         //Task<bool> UpdateActorFieldsAsync(string actorId, string firstName, string familyName, DateTime? dob, DateTime? dod, string gender,
-         // string procedureName, string connectionString, CancellationToken cancellationToken = default);
+        // string procedureName, string connectionString, CancellationToken cancellationToken = default);
         //Task<bool> DeleteActorAsync(string actorId, string procedureName, string connectionString, CancellationToken cancellationToken = default);
 
     }
@@ -49,6 +49,6 @@ namespace MoviesApi.Repositories.DataAccess
             }
 
             return result;
-        }        
+        }
     }
 }

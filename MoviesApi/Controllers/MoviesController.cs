@@ -1,17 +1,19 @@
-﻿ using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MoviesApi.Domain.Repositories;
 using MoviesApi.Helpers;
 using MoviesApi.Models;
-using MoviesApi.Repositories.DataAccess;
 
 namespace MoviesApi.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(Roles = "User, Admin, Developer")]
     [ApiController]
     public class MoviesController(IDataRepository dataRepository, ILogger<MoviesController> logger) : ControllerBase
     {
         [Route("[action]")]
-        [Route("/")]
+        //[Route("/")]
         [HttpGet]
         public async Task<IActionResult> GetMovies()
         {
