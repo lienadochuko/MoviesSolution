@@ -4,10 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ContactsManager.Core.Enums
+namespace MoviesApi.Enums
 {
-	public enum UserTypeOptions
-	{
-		Admin, Developer, User
-	}
+    public enum UserTypeOptions
+    {
+        Admin, Developer, User
+    }
 }

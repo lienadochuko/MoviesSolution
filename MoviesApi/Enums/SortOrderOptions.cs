@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ContactsManager.Core.Enums
+namespace MoviesApi.Enums
 {
     public enum SortOrderOptions
     {

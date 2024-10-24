@@ -12,21 +12,14 @@ using MoviesApi.Models;
 
 namespace MoviesApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     [Authorize(Roles = "User, Admin, Developer")]
-    public class FilmsController : ControllerBase
+    public class FilmsController(ApplicationDbContext _context) : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
-
-        public FilmsController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         // GET: api/Films
-        [Route("[action]")]
         [HttpGet]
+        [Route("[action]")]
         public async Task<ActionResult<IEnumerable<Film>>> GetFilms()
         {
             try

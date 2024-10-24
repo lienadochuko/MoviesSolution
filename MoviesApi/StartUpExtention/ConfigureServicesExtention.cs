@@ -38,8 +38,24 @@ namespace MoviesApi.StartUpExtention
             .AddDefaultTokenProviders();
 
             // JWT authentication configuration
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+            // CORS
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(policyBuilder =>
+                {
+                    policyBuilder
+                        .AllowAnyOrigin()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
+
+            // JWT Authentication
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
@@ -52,6 +68,19 @@ namespace MoviesApi.StartUpExtention
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                     };
                 });
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RequireAuthenticatedUser", policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+                });
+            });
+
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Auth/Login";  // Change to the path you want
+            });
 
             // Other services like database context
             services.AddDbContext<ApplicationDbContext>(options =>

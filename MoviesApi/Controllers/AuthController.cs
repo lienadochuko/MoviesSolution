@@ -17,7 +17,7 @@ namespace MoviesApi.Controllers
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var result = await _authService.Register(model.FirstName, model.LastName, model.Password, model.Email, model.PhoneNumber, model.role);
+            var result = await _authService.Register(model.FirstName, model.LastName, model.Password, model.Email, model.PhoneNumber, model.Gender.ToString(), model.UserType.ToString());
             if (!result) return BadRequest("User could not be registered.");
 
             return Ok("User registered successfully.");
@@ -30,7 +30,7 @@ namespace MoviesApi.Controllers
             var user = await _authService.Authenticate(model.Email, model.Password);
             if (user == null) return Unauthorized("Invalid credentials.");
 
-            var token = _authService.GenerateJwtToken(user);
+            var token = await _authService.GenerateJwtToken(user);
             return Ok(new { token, user });
         }
     }

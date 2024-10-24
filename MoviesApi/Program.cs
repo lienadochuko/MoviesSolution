@@ -16,6 +16,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpContextAccessor();
 // Serilog
 builder.Host.UseSerilog((HostBuilderContext context,
     IServiceProvider services, LoggerConfiguration loggerConfiguration) =>
@@ -31,10 +32,19 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseHsts();
-app.UseHttpsRedirection();
-app.UseHttpLogging();
+app.UseHttpLogging(); 
 
 app.UseRouting();
+app.UseCors();
+
+//// Configure the HTTP request pipeline.
+//if (app.Environment.IsDevelopment())
+//{
+//app.UseSwagger();
+//  app.UseSwaggerUI();
+//}
+
+app.UseHttpsRedirection();
 // Ensure authentication is called before authorization
 app.UseAuthentication(); 
 app.UseAuthorization();

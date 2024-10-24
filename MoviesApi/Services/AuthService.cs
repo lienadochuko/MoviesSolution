@@ -14,7 +14,7 @@ namespace MoviesApi.Services
         UserManager<ApplicationUser> _userManager, RoleManager<ApplicationRole> _roleManager)
     {
         // Register a new user
-        public async Task<bool> Register(string FirstName, string LastName, string password, string email, string PhoneNumber, string role)
+        public async Task<bool> Register(string FirstName, string LastName, string password, string email, string PhoneNumber, string gender, string role)
         {
             string username = LastName.Substring(0, 1) + FirstName;
 
@@ -23,7 +23,8 @@ namespace MoviesApi.Services
                 Name = FirstName + ' ' + LastName,
                 UserName = username,
                 Email = email,
-                PhoneNumber = PhoneNumber
+                PhoneNumber = PhoneNumber,
+                Gender = gender,
             };
 
             // Create the user with UserManager
@@ -47,10 +48,10 @@ namespace MoviesApi.Services
         }
 
         // Authenticate a user
-        public async Task<ApplicationUser> Authenticate(string username, string password)
+        public async Task<ApplicationUser> Authenticate(string email, string password)
         {
             // Find the user by username
-            var user = await _userManager.FindByNameAsync(username);
+            var user = await _userManager.FindByEmailAsync(email);
             if (user == null) return null;
 
             // Verify the password

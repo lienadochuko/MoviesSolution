@@ -10,6 +10,7 @@ namespace MoviesApi.Domain.IdentityEntities
     public class ApplicationUser : IdentityUser<Guid>
     {
         public string? Name { get; set; }
+        public string? Gender { get; set; }
 
         //public string? Email { get; set; }
 
