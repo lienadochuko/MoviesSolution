@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using System.Data;
 using System.Data.SqlClient;
+using System.Globalization;
 
 namespace MoviesApi.Controllers
 {
@@ -164,11 +165,11 @@ namespace MoviesApi.Controllers
 					{
 						while (await reader.ReadAsync())
 						{
-							var film = new Film2
-							{
-								FilmID = CustomHelpers.GetSafeInt32(reader, 0),
-								Title = CustomHelpers.GetSafeString(reader, 1),
-								ReleaseDate = CustomHelpers.GetDateTime(reader, 2),
+                            var film = new Film2
+                            {
+                                FilmID = CustomHelpers.GetSafeInt32(reader, 0),
+                                Title = CustomHelpers.GetSafeString(reader, 1),
+                                ReleaseDate = CustomHelpers.GetDateTimeFormatted(reader, 2),
 								DirectorID = CustomHelpers.GetSafeInt32(reader, 3),
 								Director = CustomHelpers.GetSafeString(reader, 4),
 								StudioID = CustomHelpers.GetSafeInt32(reader, 5),
@@ -215,5 +216,19 @@ namespace MoviesApi.Controllers
 			}
 		}
 
-	}
+        public async Task<string> FormattedDate(DateTime dateTime)
+        {
+            string dateString = "26/Apr/2007 12:00:00 AM";
+
+            // Parse the date string to DateTime
+            DateTime date =DateTime.ParseExact(dateString, "dd/MMM/yyyy hh:mm:ss tt", CultureInfo.InvariantCulture);
+
+            // Format the DateTime to "April 26, 2007"
+            string formattedDate = date.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture);
+
+            //Console.WriteLine(formattedDate); // Output: "April 26, 2007
+
+            return formattedDate; // Output: "April 26, 2007"
+        }
+    }
 }

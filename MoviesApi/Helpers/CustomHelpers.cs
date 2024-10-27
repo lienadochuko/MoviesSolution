@@ -4,6 +4,8 @@ using System.Data.SqlClient;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Http;
+using System.Globalization;
 
 
 namespace MoviesApi.Helpers
@@ -461,7 +463,22 @@ namespace MoviesApi.Helpers
 			return reader.IsDBNull(index) ? null : reader.GetDateTime(index);
 		}
 
-		public static string SplitNumberWithComma(string number)
+        public static string GetDateTimeFormatted(SqlDataReader reader, int index)
+        {
+            // Check for null values first
+            if (reader.IsDBNull(index))
+                return null;
+
+            // Get DateTime from SqlDataReader
+            DateTime dateTime = reader.GetDateTime(index);
+
+            // Format the DateTime to "26 April, 2007"
+            string formattedDate = dateTime.ToString("dd MMMM, yyyy", CultureInfo.InvariantCulture);
+
+            return formattedDate;
+        }
+
+        public static string SplitNumberWithComma(string number)
         {
             if (!string.IsNullOrEmpty(number))
             {
