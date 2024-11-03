@@ -16,9 +16,12 @@ namespace MoviesApi.Services
         // Register a new user
         public async Task<bool> Register(string FirstName, string LastName, string password, string email, string PhoneNumber, string gender, string role)
         {
-            string username = LastName.Substring(0, 1) + FirstName;
+            string combined = LastName + FirstName;
+			Random random = new Random();
+            string username = new string(combined.OrderBy(_ => random.Next()).Take(6).ToArray());
 
-            ApplicationUser user = new()
+
+			ApplicationUser user = new()
             {
                 Name = FirstName + ' ' + LastName,
                 UserName = username,

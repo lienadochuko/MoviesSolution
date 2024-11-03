@@ -189,7 +189,8 @@ namespace MoviesApi.Controllers
 								OscarNominations = CustomHelpers.GetSafeByte(reader, 19),
 								OscarWins = CustomHelpers.GetSafeByte(reader, 20),
 								Poster = CustomHelpers.GetSafeString(reader, 21),
-							};
+                                Rating = CustomHelpers.GetSafeString(reader, 22),
+                            };
 
 							// Add each film to the list
 							films.Add(film);
