@@ -195,7 +195,7 @@ namespace MoviesApi.Controllers
                         TotalItems = totalRecords,
                         TotalPages = totalPages
                     };
-
+                    await connection.CloseAsync();
                     return Ok(model);
                 }
 			}
@@ -273,7 +273,7 @@ namespace MoviesApi.Controllers
 						TotalItems = totalRecords,
 						TotalPages = totalPages
 					};
-
+                    await connection.CloseAsync();
 					return Ok(model);
 				}
 			}
@@ -332,6 +332,7 @@ namespace MoviesApi.Controllers
                             };
                         }
                     }
+                    await connection.CloseAsync();
                     return Ok(films);
                 }
 			}
@@ -360,18 +361,18 @@ namespace MoviesApi.Controllers
                 foreach (int filmId in filmIds)
                 {
 
-                    if (filmId < 10)
-                    {
-                        base64Image = await FetchRandomCartoonImageBase64Async(); // Cartoon images for filmId less than 10
-                    }
-                    else if (filmId >= 10 && filmId <= 1670)
-                    {
-                        base64Image = await GenerateRandomBase64Image(); // Random color images for filmId between 10 and 1670
-                    }
-                    else
-                    {
-                        base64Image = await FetchRandomCartoonImageBase64Async(); // Cartoon images for filmId greater than 1670
-                    }
+                    //if (filmId < 10)
+                    //{
+                    //    base64Image = await FetchRandomCartoonImageBase64Async(); // Cartoon images for filmId less than 10
+                    //}
+                    //else if (filmId >= 10 && filmId <= 1670)
+                    //{
+                        base64Image = await GenerateRandomFourColorBase64Image(); // Random color images for filmId between 10 and 1670
+                    //}
+                    //else
+                    //{
+                    //    base64Image = await FetchRandomCartoonImageBase64Async(); // Cartoon images for filmId greater than 1670
+                    //}
 
                     string updateQuery = "UPDATE Film SET Poster = @Poster WHERE FilmID = @FilmID";
                     using (SqlCommand updateCommand = new SqlCommand(updateQuery, connection))
@@ -402,29 +403,63 @@ namespace MoviesApi.Controllers
             return formattedDate; // Output: "April 26, 2007"
         }
 
-		private async Task<string> GenerateRandomBase64Image()
-		{
-			int width = 100;  // Width of the image
-			int height = 100; // Height of the image
+        //private async Task<string> GenerateRandomBase64Image()
+        //{
+        //	int width = 100;  // Width of the image
+        //	int height = 100; // Height of the image
 
-			using (Bitmap bitmap = new Bitmap(width, height))
-			{
-				Random random = new Random();
-				Color randomColor = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
+        //	using (Bitmap bitmap = new Bitmap(width, height))
+        //	{
+        //		Random random = new Random();
+        //		Color randomColor = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
 
-				using (Graphics graphics = Graphics.FromImage(bitmap))
-				{
-					graphics.Clear(randomColor);
-				}
+        //		using (Graphics graphics = Graphics.FromImage(bitmap))
+        //		{
+        //			graphics.Clear(randomColor);
+        //		}
 
-				using (MemoryStream memoryStream = new MemoryStream())
-				{
-					bitmap.Save(memoryStream, ImageFormat.Png);
-					byte[] imageBytes = memoryStream.ToArray();
-					return Convert.ToBase64String(imageBytes);
-				}
-			}
-		}
+        //		using (MemoryStream memoryStream = new MemoryStream())
+        //		{
+        //			bitmap.Save(memoryStream, ImageFormat.Png);
+        //			byte[] imageBytes = memoryStream.ToArray();
+        //			return Convert.ToBase64String(imageBytes);
+        //		}
+        //	}
+        //}
+
+        private async Task<string> GenerateRandomFourColorBase64Image()
+        {
+            int width = 100;  // Width of the image
+            int height = 100; // Height of the image
+
+            using (Bitmap bitmap = new Bitmap(width, height))
+            {
+                Random random = new Random();
+
+                // Generate four random colors
+                Color color1 = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
+                Color color2 = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
+                Color color3 = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
+                Color color4 = Color.FromArgb(random.Next(256), random.Next(256), random.Next(256));
+
+                using (Graphics graphics = Graphics.FromImage(bitmap))
+                {
+                    // Fill each quadrant with a different color
+                    graphics.FillRectangle(new SolidBrush(color1), 0, 0, width / 2, height / 2);         // Top-left
+                    graphics.FillRectangle(new SolidBrush(color2), width / 2, 0, width / 2, height / 2); // Top-right
+                    graphics.FillRectangle(new SolidBrush(color3), 0, height / 2, width / 2, height / 2); // Bottom-left
+                    graphics.FillRectangle(new SolidBrush(color4), width / 2, height / 2, width / 2, height / 2); // Bottom-right
+                }
+
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    bitmap.Save(memoryStream, ImageFormat.Png);
+                    byte[] imageBytes = memoryStream.ToArray();
+                    return Convert.ToBase64String(imageBytes);
+                }
+            }
+        }
+
 
         private string GenerateRandomString(int length)
         {
@@ -464,7 +499,8 @@ namespace MoviesApi.Controllers
                 }
 
                 // If API call fails or any exception occurs, return a generated Base64 image
-                return await GenerateRandomBase64Image();
+                //return await GenerateRandomBase64Image();
+                return null;
             }
         }
     }

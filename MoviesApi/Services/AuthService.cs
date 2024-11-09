@@ -3,10 +3,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using MoviesApi.Domain.DatabaseContext;
 using MoviesApi.Domain.IdentityEntities;
+using MoviesApi.Helpers;
 using System;
+using System.Configuration;
+using System.Data;
+using System.Data.SqlClient;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading;
 
 namespace MoviesApi.Services
 {
@@ -14,14 +19,13 @@ namespace MoviesApi.Services
         UserManager<ApplicationUser> _userManager, RoleManager<ApplicationRole> _roleManager)
     {
         // Register a new user
-        public async Task<bool> Register(string FirstName, string LastName, string password, string email, string PhoneNumber, string gender, string role)
+        public async Task<bool> Register(string FirstName, string LastName, string password, string email, string PhoneNumber, string gender, string role, string Image)
         {
             string combined = LastName + FirstName;
-			Random random = new Random();
+            Random random = new Random();
             string username = new string(combined.OrderBy(_ => random.Next()).Take(6).ToArray());
 
-
-			ApplicationUser user = new()
+            ApplicationUser user = new()
             {
                 Name = FirstName + ' ' + LastName,
                 UserName = username,
@@ -44,11 +48,30 @@ namespace MoviesApi.Services
                 // Assign the role to the user
                 await _userManager.AddToRoleAsync(user, role);
 
+                // Now handle the UserImage
+                await using (SqlConnection connection = new SqlConnection(CustomHelpers.GetConnectionString(_config, "Default")))
+                {
+                    await using (SqlCommand command = new SqlCommand("dbo.AddUserImage", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        // Adding the parameters to the command
+                        command.Parameters.Add(new SqlParameter("@Image", SqlDbType.VarChar) { Value = Image });
+                        command.Parameters.Add(new SqlParameter("@Id", SqlDbType.VarChar) { Value = user.Id.ToString() });
+
+                        await connection.OpenAsync();
+                        await command.ExecuteNonQueryAsync();  // Execute the stored procedure
+                        await connection.CloseAsync();
+
+                    }
+                }
+
                 return true;
             }
 
             return false;
         }
+
 
         // Authenticate a user
         public async Task<ApplicationUser> Authenticate(string email, string password)
@@ -61,6 +84,8 @@ namespace MoviesApi.Services
             var result = await _userManager.CheckPasswordAsync(user, password);
             return result ? user : null;
         }
+
+
 
         // Method to generate JWT token
         public async Task<string> GenerateJwtToken(ApplicationUser user)

@@ -45,6 +45,7 @@ app.UseCors();
 //}
 
 app.UseHttpsRedirection();
+
 // Ensure authentication is called before authorization
 app.UseAuthentication(); 
 app.UseAuthorization();
