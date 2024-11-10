@@ -59,8 +59,15 @@ namespace MoviesApi.Controllers
                     }
                     await connection.CloseAsync();
                 }
-            var token = await _authService.GenerateJwtToken(user);
-            return Ok(new { token, user, userImage });
+            encrypt token = await _authService.GenerateJwtToken(user);
+            encrypt userJson = await _authService.GenerateEncrpyted(user);
+            encrypt userImageJson = await _authService.GenerateEncrpytedString(userImage);
+            return Ok(new { token, userJson, userImageJson });
         }
+
+//        var client = new HttpClient();
+//        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {encryptedToken}");
+//client.DefaultRequestHeaders.Add("Tag", tag);
+//client.DefaultRequestHeaders.Add("Nonce", nonce);
     }
 }

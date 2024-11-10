@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Drawing.Imaging;
 using System.Drawing;
 using System.Configuration;
+using MoviesApi.Services;
 
 namespace MoviesApi.Controllers
 {
@@ -196,7 +197,25 @@ namespace MoviesApi.Controllers
                         TotalPages = totalPages
                     };
                     await connection.CloseAsync();
-                    return Ok(model);
+
+                    // Encrypt the JWT using AES-GCM
+                    var aes = new AES(configuration["AesGcm:Key"]);
+                    var nodelJson = JObject.FromObject(model).ToString();
+
+                    var (cipherText, tag, nonce) = aes.Encrypt(nodelJson);
+
+                    // Convert encrypted parts to Base64 for safe storage/transmission
+                    string encryptedToken = Convert.ToBase64String(cipherText);
+                    string tagBase64 = Convert.ToBase64String(tag);
+                    string nonceBase64 = Convert.ToBase64String(nonce);
+
+                    encrypt encrypt = new encrypt()
+                    {
+                        EncryptedToken = encryptedToken,
+                        TagBase64 = tagBase64,
+                        NonceBase64 = nonceBase64
+                    };
+                    return Ok(encrypt);
                 }
 			}
 		}
@@ -274,8 +293,26 @@ namespace MoviesApi.Controllers
 						TotalPages = totalPages
 					};
                     await connection.CloseAsync();
-					return Ok(model);
-				}
+
+                    // Encrypt the JWT using AES-GCM
+                    var aes = new AES(configuration["AesGcm:Key"]);
+                    var nodelJson = JObject.FromObject(model).ToString();
+
+                    var (cipherText, tag, nonce) = aes.Encrypt(nodelJson);
+
+                    // Convert encrypted parts to Base64 for safe storage/transmission
+                    string encryptedToken = Convert.ToBase64String(cipherText);
+                    string tagBase64 = Convert.ToBase64String(tag);
+                    string nonceBase64 = Convert.ToBase64String(nonce);
+
+                    encrypt encrypt = new encrypt()
+                    {
+                        EncryptedToken = encryptedToken,
+                        TagBase64 = tagBase64,
+                        NonceBase64 = nonceBase64
+                    };
+                    return Ok(encrypt);
+                }
 			}
 		}
 
@@ -333,7 +370,27 @@ namespace MoviesApi.Controllers
                         }
                     }
                     await connection.CloseAsync();
-                    return Ok(films);
+
+
+                    // Encrypt the JWT using AES-GCM
+                    var aes = new AES(configuration["AesGcm:Key"]);
+                    var nodelJson = JObject.FromObject(films).ToString();
+
+                    var (cipherText, tag, nonce) = aes.Encrypt(nodelJson);
+
+                    // Convert encrypted parts to Base64 for safe storage/transmission
+                    string encryptedToken = Convert.ToBase64String(cipherText);
+                    string tagBase64 = Convert.ToBase64String(tag);
+                    string nonceBase64 = Convert.ToBase64String(nonce);
+
+                    encrypt encrypt = new encrypt()
+                    {
+                        EncryptedToken = encryptedToken,
+                        TagBase64 = tagBase64,
+                        NonceBase64 = nonceBase64
+                    };
+
+                    return Ok(encrypt);
                 }
 			}
 		}

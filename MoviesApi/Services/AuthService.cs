@@ -4,6 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using MoviesApi.Domain.DatabaseContext;
 using MoviesApi.Domain.IdentityEntities;
 using MoviesApi.Helpers;
+using MoviesApi.Models;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Configuration;
 using System.Data;
@@ -15,7 +17,7 @@ using System.Threading;
 
 namespace MoviesApi.Services
 {
-    public class AuthService(IServiceProvider _serviceProvider, IConfiguration _config,
+    public class AuthService(IServiceProvider _serviceProvider, IConfiguration _config, AES aES,
         UserManager<ApplicationUser> _userManager, RoleManager<ApplicationRole> _roleManager)
     {
         // Register a new user
@@ -87,22 +89,69 @@ namespace MoviesApi.Services
 
 
 
-        // Method to generate JWT token
-        public async Task<string> GenerateJwtToken(ApplicationUser user)
+        // Method to encrpyt
+        public async Task<encrypt> GenerateEncrpyted(ApplicationUser user)
         {
-            var roles = await _userManager.GetRolesAsync(user); // This is an async call
+            // Encrypt the JWT using AES-GCM
+            var aes = new AES(_config["AesGcm:Key"]);
+            var userJson = JObject.FromObject(user).ToString();
+            var (cipherText, tag, nonce) = aes.Encrypt(userJson);
+
+            // Convert encrypted parts to Base64 for safe storage/transmission
+            string encryptedToken = Convert.ToBase64String(cipherText);
+            string tagBase64 = Convert.ToBase64String(tag);
+            string nonceBase64 = Convert.ToBase64String(nonce);
+
+            encrypt encrypt = new encrypt()
+            {
+                EncryptedToken = encryptedToken,
+                TagBase64 = tagBase64,
+                NonceBase64 = nonceBase64
+            };
+
+            return (encrypt);
+        }
+        
+        public async Task<encrypt> GenerateEncrpytedString(String input)
+        {
+            // Encrypt the JWT using AES-GCM
+            var aes = new AES(_config["AesGcm:Key"]);
+            var (cipherText, tag, nonce) = aes.Encrypt(input);
+
+            // Convert encrypted parts to Base64 for safe storage/transmission
+            string encryptedToken = Convert.ToBase64String(cipherText);
+            string tagBase64 = Convert.ToBase64String(tag);
+            string nonceBase64 = Convert.ToBase64String(nonce);
+
+            encrypt encrypt = new encrypt()
+            {
+                EncryptedToken = encryptedToken,
+                TagBase64 = tagBase64,
+                NonceBase64 = nonceBase64
+            };
+
+            return (encrypt);
+        }
+
+
+        // Method to generate JWT token
+        public async Task<encrypt> GenerateJwtToken(ApplicationUser user)
+        {
+            var roles = await _userManager.GetRolesAsync(user); // Async call to get roles
+            
 
             var claims = new List<Claim>
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-            };
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
 
             foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
             }
 
+            // Generate the JWT token
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -114,8 +163,54 @@ namespace MoviesApi.Services
                 signingCredentials: creds
             );
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            string jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
+
+            // Encrypt the JWT using AES-GCM
+            var aes = new AES(_config["AesGcm:Key"]);
+            var (cipherText, tag, nonce) = aes.Encrypt(jwtToken);
+
+            // Convert encrypted parts to Base64 for safe storage/transmission
+            string encryptedToken = Convert.ToBase64String(cipherText);
+            string tagBase64 = Convert.ToBase64String(tag);
+            string nonceBase64 = Convert.ToBase64String(nonce);
+
+            encrypt encrypt = new encrypt() { 
+                EncryptedToken = encryptedToken,
+                TagBase64 = tagBase64,
+                NonceBase64 = nonceBase64
+            };
+
+            return (encrypt);
         }
+
+        //public async Task<string> GenerateJwtToken(ApplicationUser user)
+        //{
+        //    var roles = await _userManager.GetRolesAsync(user); // This is an async call
+
+        //    var claims = new List<Claim>
+        //    {
+        //        new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+        //        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        //    };
+
+        //    foreach (var role in roles)
+        //    {
+        //        claims.Add(new Claim(ClaimTypes.Role, role));
+        //    }
+
+        //    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        //    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        //    var token = new JwtSecurityToken(
+        //        issuer: _config["Jwt:Issuer"],
+        //        audience: _config["Jwt:Audience"],
+        //        claims: claims,
+        //        expires: DateTime.Now.AddMinutes(30),
+        //        signingCredentials: creds
+        //    );
+
+        //    return new JwtSecurityTokenHandler().WriteToken(token);
+        //}
 
 
     }
