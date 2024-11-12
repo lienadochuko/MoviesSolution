@@ -68,40 +68,50 @@ namespace MoviesApi.StartUpExtention
                          ValidAudience = configuration["Jwt:Audience"],
                          IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
                      };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnMessageReceived = context =>
+                        {
+                            var aes = context.HttpContext.RequestServices.GetRequiredService<AES>();
 
-                     options.Events = new JwtBearerEvents
-                     {
-                         OnMessageReceived = context =>
-                         {
-                             var aes = context.HttpContext.RequestServices.GetRequiredService<AES>();
+                            // Check if the Authorization header is present
+                            if (context.Request.Headers.TryGetValue("Authorization", out var encryptedTokenBase64) &&
+                                context.Request.Headers.TryGetValue("Tag", out var tagBase64) &&
+                                context.Request.Headers.TryGetValue("Nonce", out var nonceBase64))
+                            {
+                                try
+                                {
+                                    // Remove "Bearer " prefix from token
+                                    string encryptedToken = encryptedTokenBase64.ToString().Substring("Bearer ".Length).Trim();
 
-                             if (context.Request.Headers.TryGetValue("Authorization", out var encryptedTokenBase64) &&
-                                 context.Request.Headers.TryGetValue("Tag", out var tagBase64) &&
-                                 context.Request.Headers.TryGetValue("Nonce", out var nonceBase64))
-                             {
-                                 try
-                                 {
-                                     // Remove "Bearer " prefix from token
-                                     string encryptedToken = encryptedTokenBase64.ToString().Substring(7);
+                                    byte[] cipherText = Convert.FromBase64String(encryptedToken);
+                                    byte[] tag = Convert.FromBase64String(tagBase64);
+                                    byte[] nonce = Convert.FromBase64String(nonceBase64);
 
-                                     byte[] cipherText = Convert.FromBase64String(encryptedToken);
-                                     byte[] tag = Convert.FromBase64String(tagBase64);
-                                     byte[] nonce = Convert.FromBase64String(nonceBase64);
+                                    // Decrypt the token
+                                    string decryptedToken = aes.Decrypt(cipherText, tag, nonce);
 
-                                     // Decrypt the token
-                                     string decryptedToken = aes.Decrypt(cipherText, tag, nonce);
-                                     context.Token = decryptedToken;
-                                 }
-                                 catch (Exception)
-                                 {
-                                     context.Fail("Invalid encrypted token");
-                                 }
-                             }
+                                    // Set the decrypted token
+                                    context.Token = decryptedToken;
+                                }
+                                catch (Exception)
+                                {
+                                    // Decryption failed, reject the token
+                                    context.Fail("Invalid encrypted token");
+                                    return Task.CompletedTask;
+                                }
+                            }
+                            else
+                            {
+                                // Missing encryption headers, reject the token
+                                context.Fail("Missing encryption headers");
+                            }
 
-                             return Task.CompletedTask;
-                         }
-                     };
-                 });
+                            return Task.CompletedTask;
+                        }
+                    };
+
+                });
 
 
             services.AddAuthorization(options =>

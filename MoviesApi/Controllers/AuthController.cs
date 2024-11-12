@@ -64,10 +64,5 @@ namespace MoviesApi.Controllers
             encrypt userImageJson = await _authService.GenerateEncrpytedString(userImage);
             return Ok(new { token, userJson, userImageJson });
         }
-
-//        var client = new HttpClient();
-//        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {encryptedToken}");
-//client.DefaultRequestHeaders.Add("Tag", tag);
-//client.DefaultRequestHeaders.Add("Nonce", nonce);
     }
 }
