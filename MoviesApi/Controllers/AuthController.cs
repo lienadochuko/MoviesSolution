@@ -59,7 +59,7 @@ namespace MoviesApi.Controllers
                     }
                     await connection.CloseAsync();
                 }
-            encrypt token = await _authService.GenerateJwtToken(user);
+            string token = await _authService.GenerateJwtToken(user);
             encrypt userJson = await _authService.GenerateEncrpyted(user);
             encrypt userImageJson = await _authService.GenerateEncrpytedString(userImage);
             return Ok(new { token, userJson, userImageJson });

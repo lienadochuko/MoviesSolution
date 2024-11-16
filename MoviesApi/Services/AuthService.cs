@@ -135,7 +135,7 @@ namespace MoviesApi.Services
 
 
         // Method to generate JWT token
-        public async Task<encrypt> GenerateJwtToken(ApplicationUser user)
+        public async Task<string> GenerateJwtToken(ApplicationUser user)
         {
             var roles = await _userManager.GetRolesAsync(user); // Async call to get roles
             
@@ -166,21 +166,21 @@ namespace MoviesApi.Services
             string jwtToken = new JwtSecurityTokenHandler().WriteToken(token);
 
             // Encrypt the JWT using AES-GCM
-            var aes = new AES(_config["AesGcm:Key"]);
-            var (cipherText, tag, nonce) = aes.Encrypt(jwtToken);
+            //var aes = new AES(_config["AesGcm:Key"]);
+            //var (cipherText, tag, nonce) = aes.Encrypt(jwtToken);
 
-            // Convert encrypted parts to Base64 for safe storage/transmission
-            string encryptedToken = Convert.ToBase64String(cipherText);
-            string tagBase64 = Convert.ToBase64String(tag);
-            string nonceBase64 = Convert.ToBase64String(nonce);
+            //// Convert encrypted parts to Base64 for safe storage/transmission
+            //string encryptedToken = Convert.ToBase64String(cipherText);
+            //string tagBase64 = Convert.ToBase64String(tag);
+            //string nonceBase64 = Convert.ToBase64String(nonce);
 
-            encrypt encrypt = new encrypt() { 
-                EncryptedToken = encryptedToken,
-                TagBase64 = tagBase64,
-                NonceBase64 = nonceBase64
-            };
+            //encrypt encrypt = new encrypt() { 
+            //    EncryptedToken = encryptedToken,
+            //    TagBase64 = tagBase64,
+            //    NonceBase64 = nonceBase64
+            //};
 
-            return (encrypt);
+            return jwtToken;
         }
 
         //public async Task<string> GenerateJwtToken(ApplicationUser user)
