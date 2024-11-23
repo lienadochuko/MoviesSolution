@@ -17,9 +17,12 @@ namespace MoviesApi.Controllers
 
         [Route("[action]")]
         [HttpPost]
-        public async Task<IActionResult> Register([FromBody] RegisterDTO model)
+        public async Task<IActionResult> Register([FromBody] encrypt enc)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            RegisterDTO model = await _authService.DecryptData<RegisterDTO>(enc);
+
 
             var result = await _authService.Register(model.FirstName, model.LastName, model.Password, model.Email, model.PhoneNumber, model.Gender.ToString(), model.UserType.ToString(), model.Image);
             if (!result) return BadRequest("User could not be registered.");

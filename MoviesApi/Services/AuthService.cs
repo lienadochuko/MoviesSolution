@@ -5,6 +5,7 @@ using MoviesApi.Domain.DatabaseContext;
 using MoviesApi.Domain.IdentityEntities;
 using MoviesApi.Helpers;
 using MoviesApi.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Configuration;
@@ -14,6 +15,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace MoviesApi.Services
 {
@@ -89,6 +91,33 @@ namespace MoviesApi.Services
 
 
 
+        public async Task<T> DecryptData<T>(encrypt enc)
+        {
+            // Initialize AES with the configured key
+            var aes = new AES(_config["AesGcm:Key"]);
+
+            // Decrypt the encrypted token using AES-GCM
+            var decryptedData = aes.Decrypt(
+                Convert.FromBase64String(enc.EncryptedToken),
+                Convert.FromBase64String(enc.TagBase64),
+                Convert.FromBase64String(enc.NonceBase64)
+            );
+
+            // Deserialize the decrypted data into the specified type
+            try
+            {
+                var result = JsonConvert.DeserializeObject<T>(decryptedData);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Log the exception if needed
+                Console.WriteLine($"Error during decryption or deserialization: {ex.Message}");
+                throw new InvalidOperationException("Failed to decrypt or deserialize the data", ex);
+            }
+        }
+
+
         // Method to encrpyt
         public async Task<encrypt> GenerateEncrpyted(ApplicationUser user)
         {
@@ -112,7 +141,7 @@ namespace MoviesApi.Services
             return (encrypt);
         }
         
-        public async Task<encrypt> GenerateEncrpytedString(String input)
+        public async Task<encrypt> GenerateEncrpytedString(string input)
         {
             // Encrypt the JWT using AES-GCM
             var aes = new AES(_config["AesGcm:Key"]);

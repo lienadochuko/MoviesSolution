@@ -13,6 +13,7 @@ using System.Drawing.Imaging;
 using System.Drawing;
 using System.Configuration;
 using MoviesApi.Services;
+using Newtonsoft.Json;
 
 namespace MoviesApi.Controllers
 {
@@ -175,6 +176,7 @@ namespace MoviesApi.Controllers
                                 Title = CustomHelpers.GetSafeString(reader, 1),
 								Poster = CustomHelpers.GetSafeString(reader, 2),
                                 Rating = CustomHelpers.GetSafeString(reader, 3),
+                                LikeCount = CustomHelpers.GetSafeInt32(reader, 4),
                             };
 
 							// Add each film to the list
@@ -264,6 +266,7 @@ namespace MoviesApi.Controllers
 								Title = CustomHelpers.GetSafeString(reader, 1),
 								Poster = CustomHelpers.GetSafeString(reader, 2),
 								Rating = CustomHelpers.GetSafeString(reader, 3),
+								LikeCount = CustomHelpers.GetSafeInt32(reader, 4),
 							};
 
 							// Add each film to the list
@@ -366,7 +369,8 @@ namespace MoviesApi.Controllers
 								OscarWins = CustomHelpers.GetSafeByte(reader, 20),
 								Poster = CustomHelpers.GetSafeString(reader, 21),
                                 Rating = CustomHelpers.GetSafeString(reader, 22),
-                            };
+								LikeCount = CustomHelpers.GetSafeInt32(reader, 23),
+							};
                         }
                     }
                     await connection.CloseAsync();
@@ -374,7 +378,7 @@ namespace MoviesApi.Controllers
 
                     // Encrypt the JWT using AES-GCM
                     var aes = new AES(configuration["AesGcm:Key"]);
-                    var nodelJson = JObject.FromObject(films).ToString();
+                    string nodelJson = JsonConvert.SerializeObject(films);
 
                     var (cipherText, tag, nonce) = aes.Encrypt(nodelJson);
 
