@@ -14,13 +14,16 @@ using System.Drawing;
 using System.Configuration;
 using MoviesApi.Services;
 using Newtonsoft.Json;
+using NuGet.Protocol.Plugins;
 
 namespace MoviesApi.Controllers
 {
     [Route("[controller]")]
     [ApiController]
     [Authorize(Roles = "User, Admin, Developer")]
-    public class MoviesController(IDataRepository dataRepository, ILogger<MoviesController> logger) : ControllerBase
+    public class MoviesController(IDataRepository dataRepository,
+		AuthService _authService,
+		ILogger<MoviesController> logger) : ControllerBase
     {
         [Route("[action]")]
         //[Route("/")]
@@ -448,6 +451,54 @@ namespace MoviesApi.Controllers
 			}
 		}
 
+		[HttpPost("AddUserFilmLike")]
+		public async Task<IActionResult> AddUserFilmLike([FromBody] encrypt enc, IConfiguration configuration, CancellationToken cancellationToken)
+		{
+			if (!ModelState.IsValid) return BadRequest(ModelState);
+
+			Like like = await _authService.DecryptData<Like>(enc);
+
+			if (like.FilmID <= 0 || like.UserID == null || like.UserID == "")
+			{
+				return BadRequest("Invalid FilmID or UserID.");
+			}
+
+            Guid userID = ConvertStringToGuid(like.UserID);
+
+			await using (SqlConnection connection = new SqlConnection(CustomHelpers.GetConnectionString(configuration, "Default")))
+			{
+				await using (SqlCommand command = new SqlCommand("dbo.AddUserFilmLike", connection))
+				{
+					command.CommandType = CommandType.StoredProcedure;
+
+					command.Parameters.Add(new SqlParameter("@FilmID", SqlDbType.Int) { Value = like.FilmID });
+					command.Parameters.Add(new SqlParameter("@UserID", SqlDbType.UniqueIdentifier) { Value = userID });
+
+					try
+					{
+						// Open the connection
+						await connection.OpenAsync(cancellationToken);
+
+						// Execute the stored procedure
+						await command.ExecuteNonQueryAsync(cancellationToken);
+
+						return Ok("Film like status toggled successfully.");
+					}
+					catch (SqlException ex)
+					{						
+						return StatusCode(500, $"Database error: {ex.Message}");
+					}
+					finally
+					{
+						await connection.CloseAsync();
+					}
+				}
+			}
+		}
+
+
+
+
 
 		public async Task<string> FormattedDate(DateTime dateTime)
         {
@@ -564,5 +615,18 @@ namespace MoviesApi.Controllers
                 return null;
             }
         }
-    }
+
+		public Guid ConvertStringToGuid(string guidString)
+		{
+			if (Guid.TryParse(guidString, out Guid guid))
+			{
+				return guid; // Successfully parsed
+			}
+			else
+			{
+				throw new ArgumentException("Invalid GUID string.");
+			}
+		}
+
+	}
 }
